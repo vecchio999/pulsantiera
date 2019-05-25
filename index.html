@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <title>SOUND</title>
+    </head>
+    <body>
+
+        <div class="container my-2">
+
+            <form id="aggiungi">
+                <div class="form-row">
+                    <div class="col">
+                        <input type="text" name="label" class="form-control" placeholder="Etichetta" required>
+                    </div>
+                    <div class="col">
+                        <input type="text" name="yt" class="form-control" placeholder="ID YouTube" required>
+                    </div>
+                    <div class="col">
+                        <input type="number" name="dal" class="form-control" placeholder="da">
+                    </div>
+                    <div class="col">
+                        <input type="number" name="al" class="form-control" placeholder="a">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" id="aggiungi-submit" class="btn btn-primary mb-2" disabled>Submit</button>
+                    </div>                  
+                </div>
+            </form>        
+            
+            <div class="row mt-3">
+                <div class="col-6">
+                    <div id="player" class="embed-responsive embed-responsive-16by9"></div>
+                </div>
+                <div id="pulsantiera" class="col-6"></div>
+            </div>
+
+
+
+        </div>        
+
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+        <script>
+
+            var pulsanti = [];
+            
+            var tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            var firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+            var player;
+
+            $(document).ready(function () {
+                
+                // localStorage.removeItem("saz_pulsanti");
+
+                if (typeof (Storage) !== "undefined") {
+
+                    if (localStorage.getItem("saz_pulsanti") === null) {
+                        pulsanti = [];
+                    } else {
+                        pulsanti = JSON.parse(localStorage.getItem("saz_pulsanti"));
+                    }
+
+                    $('#aggiungi-submit').removeAttr('disabled');
+
+                    pulsanti.forEach(function (e) {
+
+                        addPulsante(e.id, e.label, e.dal, e.al);
+
+                        // console.log(e);
+                    });
+
+                    // console.log(pulsanti);
+                    
+                    $('#pulsantiera').on('click', 'button', function(){
+                        
+                        $t = $(this);
+                        
+                        var args = {
+                            'videoId' : $t.data('yt')
+                        };
+                        
+                        if ($t.data('dal') > 0) {
+                            args.startSeconds = $t.data('dal');
+                        }
+                        
+                        if ($t.data('al') > 0 && $t.data('al') > $t.data('dal')) {
+                            args.endSeconds = $t.data('al');
+                        }
+                        
+                        player.loadVideoById(args);
+                    });
+
+
+                } else {
+
+                }
+
+                $('#aggiungi').on('submit', function (e) {
+
+                    e.preventDefault();
+
+                    var id = $("#aggiungi input[name=yt]").val();
+                    var label = $("#aggiungi input[name=label]").val();
+                    var dal = $("#aggiungi input[name=dal]").val();
+                    var al = $("#aggiungi input[name=al]").val();
+                    
+                    var pulsante = {
+                        id : id,
+                        label : label,
+                        dal : dal,
+                        al : al
+                    };
+
+                    pulsanti.push(pulsante);
+
+                    localStorage.setItem("saz_pulsanti", JSON.stringify(pulsanti));
+
+                    $('#aggiungi').trigger("reset");
+
+                    addPulsante(id, label, dal, al);
+
+                    // console.log(pulsanti);
+
+                });
+
+            });
+    
+            function onYouTubeIframeAPIReady() {
+                player = new YT.Player('player', {
+                    height: '360',
+                    width: '640',
+                    videoId: 'Md-e4c3PSvI',
+                    events: {
+                        'onReady' : function() {
+                            $('#player iframe').addClass('embed-responsive-item');
+                        }
+                    }
+                });
+            }
+            
+            function onPlayerReady(event) {
+                event.target.playVideo();
+            }
+
+            function addPulsante(id, label, dal, al) {
+
+                $('#pulsantiera').append($('<button type="button" class="btn btn-primary btn-block" data-yt="' + id + '" data-dal="' + dal + '" data-al="' + al + '">' + label + '</button>'));
+
+            }
+            
+        </script>
+
+    </body>
+</html>
